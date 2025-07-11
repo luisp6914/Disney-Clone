@@ -6,7 +6,7 @@ interface props{
     data : items[]
 }
 
-const Cards= ({data} : props) => {
+const MovieCards= ({data} : props) => {
     const cardRefs = useRef<(HTMLButtonElement | null)[] >([]);
     const modalRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [focusedIndex, setFocusedIndex] = useState(0);
@@ -158,4 +158,4 @@ const Cards= ({data} : props) => {
     );
 }
 
-export default Cards;
+export default MovieCards;

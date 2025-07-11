@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import type { set } from "./types";
 import api from "./services/api";
-import Cards from "./components/cards";
 import { Icon } from "@iconify/react/dist/iconify.js";
+import MovieCards from "./components/MovieCards";
 
 function App() {
   const [data, setData] = useState<set>();
@@ -27,7 +27,7 @@ function App() {
         <>
           <div className="collection-container">
             <h3 style={{marginBottom: "1rem"}}>{data.text.title.full.set.default.content}</h3>
-            <Cards data={data.items} />
+            <MovieCards data={data.items} />
           </div>
         </>
       ) : (
