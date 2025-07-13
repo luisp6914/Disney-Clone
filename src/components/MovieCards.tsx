@@ -11,6 +11,16 @@ const MovieCards= ({data} : props) => {
     const modalRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [focusedIndex, setFocusedIndex] = useState(0);
     const [validImages, setValidImages] = useState<boolean[]>([]);
+    const CARD_WIDTH = 280;
+    const GAP_WIDTH = 32;
+    const MAX_SHIFT_INDEX = 9;
+
+    const getTranslateAmount = () => {
+        const clampedIndex = Math.min(focusedIndex, MAX_SHIFT_INDEX + .1);
+        const shift = clampedIndex * (CARD_WIDTH + GAP_WIDTH);
+        
+        return `translateX(-${shift}px)`;
+    }
 
     useEffect(() => {
         //Makes sure the first card is focused on mount
@@ -98,7 +108,7 @@ const MovieCards= ({data} : props) => {
 
     return(
         <>
-            <div className="card-container" tabIndex={0} onKeyDown={handleKeyDown}>
+            <div className="card-container" tabIndex={0} onKeyDown={handleKeyDown} style={{transform: getTranslateAmount(), transition: "transform 0.3s ease-in-out"}}>
                 {data.map((item, index) => (
                     <div key={index}>
                         <button type="button" className="movie-card" ref={(el) => {cardRefs.current[index] = el}} tabIndex={-1} data-bs-toggle="modal" data-bs-target={`#${item.contentId}`}>
@@ -112,47 +122,53 @@ const MovieCards= ({data} : props) => {
                             } aria-labelledby={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` :
                                 `${item.text.title.full.series.default.content} image`} loading="lazy"/> : 
                             
-                            <div className="movie" style={{border: "2px solid #fff"}}>
+                            <div className="movie">
                                 <h1>{item.text.title.full.program ? item.text.title.full.program.default.content : item.text.title.full.series.default.content}</h1>
                             </div>
                             
                             }
                         </button>
+                    </div>
+                ))}
 
-                        <div className="modal fade" ref={(el) => {modalRefs.current[index] = el}} id={item.contentId} data-bs-keyboard="true" aria-labelledby={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` : `${item.text.title.full.series.default.content} image`} aria-hidden="true">
-                            <div className="modal-dialog modal-dialog-centered modal-lg">
-                                <div className="modal-content"
-                                     style={{backgroundImage: `url(${item.image.background ? item.image.background["1.78"].program ? 
-                                                                    item.image.background["1.78"].program.default.url : 
-                                                                    item.image.background["1.78"].series.default.url : 
-                                                                    item.image.background_details["1.78"].series.default.url})`}}>
-                                    <div className="modal-header" >
-                                        <h1>{item.text.title.full.program ? item.text.title.full.program.default.content : item.text.title.full.series.default.content}</h1>
+                <div className="end-spacer" aria-hidden="true"></div>
+            </div>
+            <div onKeyDown={handleKeyDown}>
+                {data.map((item, index) => (
+                    <div className="modal fade" ref={(el) => { modalRefs.current[index] = el }} id={item.contentId} data-bs-keyboard="true" aria-labelledby={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` : `${item.text.title.full.series.default.content} image`} aria-hidden="true">
+                        <div className="modal-dialog modal-dialog-centered modal-lg">
+                            <div className="modal-content"
+                                style={{
+                                    backgroundImage: `url(${item.image.background ? item.image.background["1.78"].program ?
+                                        item.image.background["1.78"].program.default.url :
+                                        item.image.background["1.78"].series.default.url :
+                                        item.image.background_details["1.78"].series.default.url})`
+                                }}>
+                                <div className="modal-header" >
+                                    <h1>{item.text.title.full.program ? item.text.title.full.program.default.content : item.text.title.full.series.default.content}</h1>
+                                </div>
+                                <div className="modal-body">
+                                    <p>{`${item.releases[0].releaseYear} ●  ${item.type} ●  ${item.text.title.full.program ? item.text.title.full.program.default.language.toUpperCase() : item.text.title.full.series.default.language.toUpperCase()}`}</p>
+                                    <div className="btn-container" tabIndex={0}>
+                                        <button className="btn play-btn" id={`play-btn-${index}`} tabIndex={-1}>
+                                            <Icon className="modal-icons" icon="line-md:play" width="48" height="48" />
+                                        </button>
+                                        <button className="btn trailer-btn" id={`trailer-btn-${index}`} tabIndex={-1} >TRAILER</button>
+                                        <button className="btn add-btn" id={`add-btn-${index}`} tabIndex={-1}>
+                                            <Icon className="modal-icons" icon="tabler:plus" width="48" height="48" />
+                                        </button>
                                     </div>
-                                    <div className="modal-body">
-                                        <p>{`${item.releases[0].releaseYear} ●  ${item.type} ●  ${item.text.title.full.program ? item.text.title.full.program.default.language.toUpperCase() : item.text.title.full.series.default.language.toUpperCase()}`}</p>
-                                        <div className="btn-container" tabIndex={0}>
-                                            <button className="btn play-btn" id={`play-btn-${index}`} tabIndex={-1}>
-                                                <Icon className="modal-icons" icon="line-md:play" width="48" height="48" />
-                                            </button>
-                                            <button className="btn trailer-btn" id={`trailer-btn-${index}`} tabIndex={-1} >TRAILER</button>
-                                            <button className="btn add-btn" id={`add-btn-${index}`} tabIndex={-1}>
-                                                <Icon className="modal-icons" icon="tabler:plus" width="48" height="48" />
-                                            </button>
-                                        </div>
-                                        <div style={{marginTop: "2rem"}}>
-                                            <p>
-                                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
-                                                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                                            </p>
-                                        </div>
+                                    <div style={{ marginTop: "2rem" }}>
+                                        <p>
+                                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. <br />
+                                            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 ))}
-                <div className="end-spacer" aria-hidden="true"></div>
             </div>
         </>
     );

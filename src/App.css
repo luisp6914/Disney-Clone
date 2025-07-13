@@ -1,3 +1,5 @@
+
+
 html, body, #root{
   margin: 0;
   padding: 0;
@@ -39,18 +41,15 @@ body{
   width: 280px;
   height: 160px;
   flex-shrink: 0;
+
 }
 
 .movie-card:focus{
   border: 3px solid #fff;
   border-radius: 16px;
   transform: scale(1.10);
-  transition: transform .3s ease-in-out;
+  transition: transform .4s ease-in;
   z-index: 1;
-}
-
-.movie-card:focus-within div{
-  border: none !important;
 }
 
 
@@ -67,6 +66,7 @@ body{
   display: flex;
   text-align: center;
   align-items: center;
+  background-color: #394049;
 }
 
 /*Modal*/
@@ -78,7 +78,7 @@ body{
   height: 500px;
   background-repeat: no-repeat;
   background-size: cover;
-  background-color: #14143c;
+  background-color: #394049;
 }
 .modal-header{
   color: #fff;
@@ -105,7 +105,7 @@ body{
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 2px solid #fff;
+  border: 1.5px solid #fff;
   border-radius: 5px;
   width: 140px;
   height: 50px;
@@ -120,6 +120,6 @@ body{
 }
 
 .end-spacer{
-  width: 10px;
+  width: 30px;
   flex-shrink: 0;
 }
