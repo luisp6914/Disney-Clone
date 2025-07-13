@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { set } from "../types";
 
-const ENDPOINT = "https://cd-static.bamgrid.com/dp-7068675309/home.json" //import.meta.env.VITE_ENDPOINT;
+const ENDPOINT = import.meta.env.VITE_ENDPOINT;
 
 const api = async (): Promise<set> => {
     try {
