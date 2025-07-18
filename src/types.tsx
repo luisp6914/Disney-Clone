@@ -1,3 +1,11 @@
+export interface containers{
+  containers: container[];
+}
+
+export interface container{
+  set: set;
+}
+
 export interface set{
   items: items[];
 
@@ -80,6 +88,14 @@ export interface items {
             masterHeight: number;
           };
         };
+        default: {
+          default: {
+            url: string;
+            masterId: string;
+            masterWidth: number;
+            masterHeight: number;
+          };
+        };
       };
     };
 
@@ -96,6 +112,12 @@ export interface items {
           };
         };
         program: {
+            default: {
+                content: string;
+                language: string;
+            };
+        };
+        collection: {
             default: {
                 content: string;
                 language: string;

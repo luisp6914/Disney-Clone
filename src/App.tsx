@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
-import type { set } from "./types";
+import { useEffect, useRef, useState } from "react";
+import type { container, set } from "./types";
 import api from "./services/api";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import MovieCards from "./components/MovieCards";
 
 function App() {
-  const [data, setData] = useState<set>();
+  const [data, setData] = useState<container[]>([]);
+  const containerRef = useRef<(HTMLDivElement | null)[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [containerIndex, setContainerIndex] = useState(0);
 
   const fetchData = async () => {
     try {
-      const collection = await api();
-      setData(collection)
-      //console.log(collection)
+      const collections = await api();
+      setData(collections)
+      //console.log(collections)
     } catch (error) {
       console.error("Failed to fetch data", error);
     }
@@ -19,15 +22,27 @@ function App() {
 
   useEffect(() =>{
     fetchData();
-  }, [])
+    setIsLoaded(true)
+    containerRef.current[0]?.focus();
+  }, [isLoaded])
+
+  const handleKeyDownOnContainer = (e : React.KeyboardEvent<HTMLDivElement>) => {
+    if(e.key === "ArrowUp"){
+      setContainerIndex
+    }
+  }
 
   return (
     <>
       {data ? (
         <>
-          <div className="collection-container">
-            <h3 style={{marginBottom: "1rem"}}>{data.text.title.full.set.default.content}</h3>
-            <MovieCards data={data.items} />
+          <div className="containers" onKeyDown={handleKeyDownOnContainer} tabIndex={0}>
+            {data.map((container, index) => (
+              <div className="collection-container" key={index} ref={(el) => {containerRef.current[index] = el;}} tabIndex={-1}>
+                <h3 style={{marginBottom: "1rem"}}>{container.set.text.title.full.set.default.content}</h3>
+                <MovieCards data={container.set.items}/>
+              </div>
+            ))}
           </div>
         </>
       ) : (

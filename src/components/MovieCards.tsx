@@ -22,8 +22,64 @@ const MovieCards= ({data} : props) => {
         return `translateX(-${shift}px)`;
     }
 
+    const getBackgroundImage = (item :  items) : string | undefined => {
+        try {
+            if(item.image?.background?.["1.78"]?.program?.default?.url){
+                return item.image.background["1.78"].program.default.url;
+            }
+            if(item.image?.background?.["1.78"]?.series?.default?.url){
+                return item.image.background["1.78"].series.default.url;
+            }
+            if(item.image?.background_details?.["1.78"]?.series?.default?.url){
+                return item.image.background_details["1.78"].series.default.url;
+            }
+            if(item.image?.tile?.["1.78"]?.default?.default?.url){
+                return item.image.tile["1.78"].default.default.url;
+            }
+            
+            return undefined
+        } catch (error) {
+            console.error("Wrong background Image Structure", error);
+            return undefined
+        }
+    }
+
+    const getTitleImage = (item : items) : string | undefined => {
+        try {
+            if(item.image?.tile?.["1.78"]?.program?.default?.url){
+                return item.image.tile["1.78"].program.default.url;
+            } else if(item.image?.tile?.["1.78"]?.series?.default?.url){
+                return item.image.tile["1.78"].series.default.url;
+            } else if(item.image?.tile?.["1.78"]?.default?.default?.url){
+                return item.image.tile["1.78"].default.default.url;
+            } else{
+                return undefined;
+            }
+        } catch (error) {
+            console.error("Wrong title image structure", error);
+            return undefined
+        }
+    }
+
+    const getTitleContent = (item : items) : string | undefined => {
+        try {
+            if(item.text?.title?.full?.program?.default?.content){
+                return `${item.text.title.full.program.default.content} image`;
+            } else if(item.text?.title?.full?.series?.default?.content){
+                return `${item.text.title.full.series.default.content} image`;
+            } else if(item.text?.title?.full?.collection?.default?.content){
+                return `${item.text.title.full.collection.default.content} image`;
+            }
+            return undefined;
+        } catch (error) {
+            console.error("Wrong text structure", error);
+            return undefined;
+        }
+    }
+
     useEffect(() => {
         //Makes sure the first card is focused on mount
+        // console.log(cardRefs.current[1]);
         cardRefs.current[0]?.focus();
 
         const checkImageIsValid = async () => {
@@ -32,7 +88,8 @@ const MovieCards= ({data} : props) => {
                     return new Promise<boolean>((resolve) => {
                         const img = new Image();
                         const src = item.image.tile["1.78"].program ? item.image.tile["1.78"].program.default.url : 
-                                    item.image.tile["1.78"].series.default.url;
+                                    item.image.tile["1.78"].series ? item.image.tile["1.78"].series.default.url : 
+                                    item.image.tile["1.78"].default.default.url;
                         
                         img.src = src;
 
@@ -49,31 +106,7 @@ const MovieCards= ({data} : props) => {
         checkImageIsValid();
     }, [])
 
-    const handleKeyDown = (e : React.KeyboardEvent<HTMLDivElement>) => {
-        if(document.querySelector(".modal.show")){
-            const modal = modalRefs.current[focusedIndex];
-            const btnContainer = modal?.querySelector(".btn-container");
-            const buttons = btnContainer?.querySelectorAll("button");
-            
-            if(!buttons) return;
-
-            const btnArray = Array.from(buttons);
-            const currentIndex = btnArray.findIndex(
-                (btn) => btn === document.activeElement
-            );
-
-            if(e.key === "ArrowRight"){
-                const nextIndex = Math.min(currentIndex + 1, btnArray.length - 1);
-                btnArray[nextIndex]?.focus();
-
-            }
-            else if(e.key === "ArrowLeft"){
-                const prevIndex = Math.max(currentIndex - 1, 0);
-                btnArray[prevIndex]?.focus();
-            }
-
-            return;
-        }
+    const handleKeyDownOnCards = (e : React.KeyboardEvent<HTMLDivElement>) => {
         if(e.key === "ArrowRight"){
             setFocusedIndex((prev) => {
                 const next = Math.min(prev + 1, data.length - 1);
@@ -106,24 +139,45 @@ const MovieCards= ({data} : props) => {
         
     }
 
+    const handleKeyDownOnModal = (e : React.KeyboardEvent<HTMLDivElement>) => {
+        if(document.querySelector(".modal.show")){
+            const modal = modalRefs.current[focusedIndex];
+            const btnContainer = modal?.querySelector(".btn-container");
+            const buttons = btnContainer?.querySelectorAll("button");
+            
+            if(!buttons) return;
+
+            const btnArray = Array.from(buttons);
+            const currentIndex = btnArray.findIndex(
+                (btn) => btn === document.activeElement
+            );
+
+            if(e.key === "ArrowRight"){
+                const nextIndex = Math.min(currentIndex + 1, btnArray.length - 1);
+                btnArray[nextIndex]?.focus();
+
+            }
+            else if(e.key === "ArrowLeft"){
+                const prevIndex = Math.max(currentIndex - 1, 0);
+                btnArray[prevIndex]?.focus();
+            }
+
+            return;
+        }
+    }
+
     return(
         <>
-            <div className="card-container" tabIndex={0} onKeyDown={handleKeyDown} style={{transform: getTranslateAmount(), transition: "transform 0.3s ease-in-out"}}>
+            <div className="card-container" tabIndex={0} onKeyDown={handleKeyDownOnCards} style={{transform: getTranslateAmount(), transition: "transform 0.3s ease-in-out"}}>
                 {data.map((item, index) => (
                     <div key={index}>
                         <button type="button" className="movie-card" ref={(el) => {cardRefs.current[index] = el}} tabIndex={-1} data-bs-toggle="modal" data-bs-target={`#${item.contentId}`}>
                             {validImages[index] ? 
 
-                            <img className="movie" src={
-                                item.image.tile["1.78"].program ? item.image.tile["1.78"].program.default.url :
-                                item.image.tile["1.78"].series.default.url
-                            } alt={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` :
-                                `${item.text.title.full.series.default.content} image`
-                            } aria-labelledby={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` :
-                                `${item.text.title.full.series.default.content} image`} loading="lazy"/> : 
+                            <img className="movie" src={getTitleImage(item)} alt={getTitleContent(item)} aria-labelledby={getTitleContent(item)} loading="lazy"/> : 
                             
                             <div className="movie">
-                                <h1>{item.text.title.full.program ? item.text.title.full.program.default.content : item.text.title.full.series.default.content}</h1>
+                                <h1>{getTitleContent(item)}</h1>
                             </div>
                             
                             }
@@ -133,22 +187,16 @@ const MovieCards= ({data} : props) => {
 
                 <div className="end-spacer" aria-hidden="true"></div>
             </div>
-            <div onKeyDown={handleKeyDown}>
+            <div onKeyDown={handleKeyDownOnModal}>
                 {data.map((item, index) => (
-                    <div className="modal fade" ref={(el) => { modalRefs.current[index] = el }} id={item.contentId} data-bs-keyboard="true" aria-labelledby={item.text.title.full.program ? `${item.text.title.full.program.default.content} image` : `${item.text.title.full.series.default.content} image`} aria-hidden="true">
+                    <div className="modal fade" ref={(el) => { modalRefs.current[index] = el }} id={item.contentId} data-bs-keyboard="true" aria-labelledby={getTitleContent(item)} aria-hidden="true" key={index}>
                         <div className="modal-dialog modal-dialog-centered modal-lg">
-                            <div className="modal-content"
-                                style={{
-                                    backgroundImage: `url(${item.image.background ? item.image.background["1.78"].program ?
-                                        item.image.background["1.78"].program.default.url :
-                                        item.image.background["1.78"].series.default.url :
-                                        item.image.background_details["1.78"].series.default.url})`
-                                }}>
+                            <div className="modal-content" style={{backgroundImage: `url(${getBackgroundImage(item)})`}}>
                                 <div className="modal-header" >
-                                    <h1>{item.text.title.full.program ? item.text.title.full.program.default.content : item.text.title.full.series.default.content}</h1>
+                                    <h1>{getTitleContent(item)}</h1>
                                 </div>
                                 <div className="modal-body">
-                                    <p>{`${item.releases[0].releaseYear} ●  ${item.type} ●  ${item.text.title.full.program ? item.text.title.full.program.default.language.toUpperCase() : item.text.title.full.series.default.language.toUpperCase()}`}</p>
+                                    <p>{item.releases ? `${item.releases[0].releaseYear} ● ` : ""} {item.type ? `${item.type} ● ` : ""}  {`${item.text.title.full.program ? item.text.title.full.program.default.language.toUpperCase() : item.text.title.full.series ? item.text.title.full.series.default.language.toUpperCase() : item.text.title.full.collection.default.language.toUpperCase()}`}</p>
                                     <div className="btn-container" tabIndex={0}>
                                         <button className="btn play-btn" id={`play-btn-${index}`} tabIndex={-1}>
                                             <Icon className="modal-icons" icon="line-md:play" width="48" height="48" />
