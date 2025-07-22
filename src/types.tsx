@@ -30,9 +30,26 @@ export interface set{
 
 export interface items {
   contentId: string;
+  collectionId: string;
   image: {
     //Modal Image
+    hero_collection: {
+      "1.78": {
+        default: {
+          default: {
+            url: string;
+          };
+        };
+      };
+    };
     hero_tile: {
+      "1.78": {
+        default: {
+          default: {
+            url: string;
+          };
+        };
+      };
         "3.00": {
             program: {
                 default: {
@@ -63,6 +80,16 @@ export interface items {
     background_details: {
         "1.78": {
             series: {
+                default: {
+                    url: string;
+                };
+            };
+            program: {
+                default: {
+                    url: string;
+                };
+            };
+            default: {
                 default: {
                     url: string;
                 };

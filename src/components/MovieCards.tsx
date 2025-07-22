@@ -3,13 +3,15 @@ import type { items } from "../types";
 import { Icon } from "@iconify/react/dist/iconify.js";
 
 interface props{
-    data : items[]
+    data : items[];
+    containerIndex: number;
 }
 
-const MovieCards= ({data} : props) => {
-    const cardRefs = useRef<(HTMLButtonElement | null)[] >([]);
+const MovieCards= ({data, containerIndex} : props) => {
+    const cardRefs = useRef<(HTMLButtonElement | null)[][] >([]);
     const modalRefs = useRef<(HTMLDivElement | null)[]>([]);
     const [focusedIndex, setFocusedIndex] = useState(0);
+    const [currentContainer, setCurentContainer] = useState(0);
     const [validImages, setValidImages] = useState<boolean[]>([]);
     const CARD_WIDTH = 280;
     const GAP_WIDTH = 32;
@@ -22,6 +24,7 @@ const MovieCards= ({data} : props) => {
         return `translateX(-${shift}px)`;
     }
 
+    //Image for the modal
     const getBackgroundImage = (item :  items) : string | undefined => {
         try {
             if(item.image?.background?.["1.78"]?.program?.default?.url){
@@ -33,8 +36,14 @@ const MovieCards= ({data} : props) => {
             if(item.image?.background_details?.["1.78"]?.series?.default?.url){
                 return item.image.background_details["1.78"].series.default.url;
             }
-            if(item.image?.tile?.["1.78"]?.default?.default?.url){
-                return item.image.tile["1.78"].default.default.url;
+            if(item.image?.background_details?.["1.78"]?.program?.default?.url){
+                return item.image.background_details["1.78"].program.default.url;
+            }
+            if(item.image?.hero_tile?.["1.78"]?.default?.default?.url){
+                return item.image.hero_tile["1.78"].default.default.url;
+            }
+            if(item.image?.hero_collection?.["1.78"]?.default?.default?.url){
+                return item.image.hero_collection["1.78"].default.default.url;
             }
             
             return undefined
@@ -44,6 +53,7 @@ const MovieCards= ({data} : props) => {
         }
     }
 
+    //Image for the card
     const getTitleImage = (item : items) : string | undefined => {
         try {
             if(item.image?.tile?.["1.78"]?.program?.default?.url){
@@ -52,7 +62,9 @@ const MovieCards= ({data} : props) => {
                 return item.image.tile["1.78"].series.default.url;
             } else if(item.image?.tile?.["1.78"]?.default?.default?.url){
                 return item.image.tile["1.78"].default.default.url;
-            } else{
+            } else if(item.image?.hero_collection?.["1.78"]?.default?.default?.url){
+                return item.image.hero_collection["1.78"].default.default.url;
+            }else{
                 return undefined;
             }
         } catch (error) {
@@ -78,13 +90,15 @@ const MovieCards= ({data} : props) => {
     }
 
     useEffect(() => {
+        console.log(cardRefs.current[0]?.[0]);
+        // console.log(modalRefs.current[0]);
         //Makes sure the first card is focused on mount
-        // console.log(cardRefs.current[1]);
-        cardRefs.current[0]?.focus();
+        cardRefs.current[0]?.[0]?.focus();
 
         const checkImageIsValid = async () => {
             const checks = await Promise.all(
-                data.map((item) => {
+                data.map((item, index) => {
+                    // console.log(getTitleContent(item), index);
                     return new Promise<boolean>((resolve) => {
                         const img = new Image();
                         const src = item.image.tile["1.78"].program ? item.image.tile["1.78"].program.default.url : 
@@ -106,23 +120,44 @@ const MovieCards= ({data} : props) => {
         checkImageIsValid();
     }, [])
 
-    const handleKeyDownOnCards = (e : React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyDownOnCards = (e : React.KeyboardEvent<HTMLDivElement>) => {    
+        if(document.querySelector(".modal.show")){
+            return;
+        }
         if(e.key === "ArrowRight"){
             setFocusedIndex((prev) => {
                 const next = Math.min(prev + 1, data.length - 1);
-                cardRefs.current[next]?.focus();
+                cardRefs.current[currentContainer]?.[next]?.focus();
                 return next;
             });
         }
         else if(e.key === "ArrowLeft"){
             setFocusedIndex((prev) => {
                 const next = Math.max(prev - 1, 0);
-                cardRefs.current[next]?.focus();
+                cardRefs.current[currentContainer]?.[next]?.focus();
+                return next;
+            });
+        }
+        else if(e.key === "ArrowUp"){
+            setCurentContainer((prev) => {
+                const next = Math.max(prev - 1, 0);
+                console.log(`Current row ${next}`,cardRefs.current[next]?.length);
+                cardRefs.current[next]?.[focusedIndex]?.focus();
+                // console.log(cardRefs.current[next]?.[focusedIndex])
+                return next;
+            });
+        }
+        else if(e.key === "ArrowDown"){
+            setCurentContainer((prev) => {
+                const next = Math.min(prev + 1, 3);
+                console.log(`Current row ${next}`,cardRefs.current[next]?.length);
+                cardRefs.current[next]?.[focusedIndex]?.focus();
+                // console.log(cardRefs.current[next]?.[focusedIndex])
                 return next;
             })
         }
         else if(e.key === "Enter"){
-            cardRefs.current[focusedIndex]?.click();
+            cardRefs.current[currentContainer]?.[focusedIndex]?.click();
 
             //Focus the modal
             const modal = modalRefs.current[focusedIndex];
@@ -161,8 +196,6 @@ const MovieCards= ({data} : props) => {
                 const prevIndex = Math.max(currentIndex - 1, 0);
                 btnArray[prevIndex]?.focus();
             }
-
-            return;
         }
     }
 
@@ -171,7 +204,7 @@ const MovieCards= ({data} : props) => {
             <div className="card-container" tabIndex={0} onKeyDown={handleKeyDownOnCards} style={{transform: getTranslateAmount(), transition: "transform 0.3s ease-in-out"}}>
                 {data.map((item, index) => (
                     <div key={index}>
-                        <button type="button" className="movie-card" ref={(el) => {cardRefs.current[index] = el}} tabIndex={-1} data-bs-toggle="modal" data-bs-target={`#${item.contentId}`}>
+                        <button type="button" className="movie-card" ref={(el) => {if(!cardRefs.current[containerIndex]){cardRefs.current[containerIndex] = []} cardRefs.current[containerIndex][index] = el}} tabIndex={-1} data-bs-toggle="modal" data-bs-target={`#${item.contentId ? item.contentId : item.collectionId}`}>
                             {validImages[index] ? 
 
                             <img className="movie" src={getTitleImage(item)} alt={getTitleContent(item)} aria-labelledby={getTitleContent(item)} loading="lazy"/> : 
@@ -189,7 +222,7 @@ const MovieCards= ({data} : props) => {
             </div>
             <div onKeyDown={handleKeyDownOnModal}>
                 {data.map((item, index) => (
-                    <div className="modal fade" ref={(el) => { modalRefs.current[index] = el }} id={item.contentId} data-bs-keyboard="true" aria-labelledby={getTitleContent(item)} aria-hidden="true" key={index}>
+                    <div className="modal fade" ref={(el) => { modalRefs.current[index] = el }} id={item.contentId ? item.contentId : item.collectionId} data-bs-keyboard="true" aria-labelledby={getTitleContent(item)} aria-hidden="true" key={index}>
                         <div className="modal-dialog modal-dialog-centered modal-lg">
                             <div className="modal-content" style={{backgroundImage: `url(${getBackgroundImage(item)})`}}>
                                 <div className="modal-header" >

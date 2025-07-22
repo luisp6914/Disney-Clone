@@ -1,14 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import type { container, set } from "./types";
+import type { container } from "./types";
 import api from "./services/api";
 import { Icon } from "@iconify/react/dist/iconify.js";
 import MovieCards from "./components/MovieCards";
 
 function App() {
   const [data, setData] = useState<container[]>([]);
-  const containerRef = useRef<(HTMLDivElement | null)[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [containerIndex, setContainerIndex] = useState(0);
 
   const fetchData = async () => {
     try {
@@ -23,24 +21,17 @@ function App() {
   useEffect(() =>{
     fetchData();
     setIsLoaded(true)
-    containerRef.current[0]?.focus();
   }, [isLoaded])
-
-  const handleKeyDownOnContainer = (e : React.KeyboardEvent<HTMLDivElement>) => {
-    if(e.key === "ArrowUp"){
-      setContainerIndex
-    }
-  }
 
   return (
     <>
       {data ? (
         <>
-          <div className="containers" onKeyDown={handleKeyDownOnContainer} tabIndex={0}>
+          <div className="containers" tabIndex={0}>
             {data.map((container, index) => (
-              <div className="collection-container" key={index} ref={(el) => {containerRef.current[index] = el;}} tabIndex={-1}>
+              <div className="collection-container" key={index} tabIndex={-1}>
                 <h3 style={{marginBottom: "1rem"}}>{container.set.text.title.full.set.default.content}</h3>
-                <MovieCards data={container.set.items}/>
+                <MovieCards data={container.set.items} containerIndex={index}/>
               </div>
             ))}
           </div>
